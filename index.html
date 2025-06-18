@@ -386,6 +386,8 @@
     <!-- Sound effects -->
     <audio id="sound-good" src="https://cdn.jsdelivr.net/gh/terkelg/short-sounds@master/sounds/coin.mp3" preload="auto"></audio>
     <audio id="sound-bad" src="https://cdn.jsdelivr.net/gh/terkelg/short-sounds@master/sounds/error.mp3" preload="auto"></audio>
+    <!-- Confetti canvas -->
+    <canvas id="confetti-canvas" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:30;"></canvas>
   </div>
 
   <script>
@@ -431,6 +433,9 @@
       endScreen.style.display = 'block';
       resetButton.style.display = 'none';
       endMessage.textContent = score >= winScore ? "You built the well!" : "Try again to build the well!";
+      if (score >= winScore) {
+        showConfetti();
+      }
     }
 
     function resetGame() {
@@ -555,6 +560,81 @@
     startButton.onclick = startGame;
     restartButton.onclick = startGame;
     resetButton.onclick = resetGame;
+
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    let confettiActive = false;
+    let confettiParticles = [];
+
+    function showConfetti() {
+      confettiCanvas.width = confettiCanvas.offsetWidth;
+      confettiCanvas.height = confettiCanvas.offsetHeight;
+      confettiCanvas.style.display = 'block';
+      confettiActive = true;
+      confettiParticles = [];
+      for (let i = 0; i < 120; i++) {
+        confettiParticles.push({
+          x: Math.random() * confettiCanvas.width,
+          y: Math.random() * -confettiCanvas.height,
+          r: Math.random() * 6 + 4,
+          d: Math.random() * 80 + 40,
+          color: randomConfettiColor(),
+          tilt: Math.random() * 10 - 10,
+          tiltAngle: 0,
+          tiltAngleIncremental: (Math.random() * 0.07) + 0.05
+        });
+      }
+      requestAnimationFrame(drawConfetti);
+      setTimeout(hideConfetti, 2500);
+    }
+
+    function hideConfetti() {
+      confettiActive = false;
+      confettiCanvas.style.display = 'none';
+    }
+
+    function randomConfettiColor() {
+      const colors = ['#ffe600', '#00eaff', '#fffbe6', '#2193b0', '#a0522d', '#ffcc00'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function drawConfetti() {
+      if (!confettiActive) return;
+      const ctx = confettiCanvas.getContext('2d');
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      for (let i = 0; i < confettiParticles.length; i++) {
+        let p = confettiParticles[i];
+        ctx.beginPath();
+        ctx.lineWidth = p.r;
+        ctx.strokeStyle = p.color;
+        ctx.moveTo(p.x + p.tilt + p.r / 3, p.y);
+        ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+        ctx.stroke();
+      }
+      updateConfetti();
+      requestAnimationFrame(drawConfetti);
+    }
+
+    function updateConfetti() {
+      for (let i = 0; i < confettiParticles.length; i++) {
+        let p = confettiParticles[i];
+        p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+        p.x += Math.sin(0.01 * p.d);
+        p.tiltAngle += p.tiltAngleIncremental;
+        p.tilt = Math.sin(p.tiltAngle - (i % 3)) * 15;
+        if (p.y > confettiCanvas.height) {
+          p.x = Math.random() * confettiCanvas.width;
+          p.y = -10;
+        }
+      }
+    }
+
+    // Confetti effect already present, but ensure it resizes on window resize for best effect
+    window.addEventListener('resize', () => {
+      if (confettiActive) {
+        confettiCanvas.width = confettiCanvas.offsetWidth;
+        confettiCanvas.height = confettiCanvas.offsetHeight;
+      }
+    });
   </script>
 </body>
 </html>

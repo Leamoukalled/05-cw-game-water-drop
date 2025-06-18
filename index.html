@@ -383,6 +383,9 @@
       <h3 id="end-message"></h3>
       <p><a href="https://www.charitywater.org" target="_blank">Learn about charity: water</a></p>
     </div>
+    <!-- Sound effects -->
+    <audio id="sound-good" src="https://cdn.jsdelivr.net/gh/terkelg/short-sounds@master/sounds/coin.mp3" preload="auto"></audio>
+    <audio id="sound-bad" src="https://cdn.jsdelivr.net/gh/terkelg/short-sounds@master/sounds/error.mp3" preload="auto"></audio>
   </div>
 
   <script>
@@ -397,6 +400,9 @@
     const endMessage = document.getElementById('end-message');
     const fillBar = document.getElementById('fill-bar');
     const resetButton = document.getElementById('reset-button');
+
+    const soundGood = document.getElementById('sound-good');
+    const soundBad = document.getElementById('sound-bad');
 
     let score = 0;
     let timer = 60;
@@ -484,10 +490,12 @@
             score = Math.max(0, score - 1);
             feedback.textContent = "Oops! Dirty water!";
             feedback.style.color = 'red';
+            soundBad.currentTime = 0; soundBad.play();
           } else {
             score++;
             feedback.textContent = messages[Math.floor(Math.random() * messages.length)];
             feedback.style.color = 'blue';
+            soundGood.currentTime = 0; soundGood.play();
           }
           updateScore();
           drop.remove();

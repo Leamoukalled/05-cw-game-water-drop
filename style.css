@@ -1,0 +1,95 @@
+/* ...existing code... */
+
+body {
+    /* Cool gradient background */
+    background: linear-gradient(135deg, #0f2027, #2c5364 80%);
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-container {
+    background: rgba(255,255,255,0.05);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+    padding: 40px 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.18);
+}
+
+.water-drop {
+    width: 80px;
+    height: 110px;
+    background: radial-gradient(circle at 60% 30%, #aeefff 60%, #2193b0 100%);
+    border-radius: 50% 50% 60% 60% / 60% 60% 100% 100%;
+    box-shadow:
+        0 0 32px 8px #00eaff88,
+        0 0 8px 2px #00eaffcc,
+        0 4px 24px 0 #2193b0aa;
+    position: relative;
+    margin-bottom: 32px;
+    animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+    0% { box-shadow: 0 0 32px 8px #00eaff88, 0 0 8px 2px #00eaffcc, 0 4px 24px 0 #2193b0aa; }
+    100% { box-shadow: 0 0 48px 16px #00eaffcc, 0 0 16px 4px #00eaff, 0 8px 32px 0 #2193b0cc; }
+}
+
+.water-drop::after {
+    content: '';
+    position: absolute;
+    left: 22px;
+    top: 18px;
+    width: 18px;
+    height: 24px;
+    background: radial-gradient(circle, #fff 70%, transparent 100%);
+    border-radius: 50%;
+    opacity: 0.7;
+    filter: blur(1px);
+}
+
+.score {
+    font-size: 2.2rem;
+    color: #fff;
+    text-shadow: 0 0 12px #00eaff, 0 2px 8px #2193b0;
+    margin-bottom: 24px;
+    letter-spacing: 2px;
+}
+
+.button {
+    background: linear-gradient(90deg, #00eaff 0%, #2193b0 100%);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 36px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 16px 2px #00eaff88;
+    transition: transform 0.1s, box-shadow 0.2s;
+    margin-top: 16px;
+}
+
+.button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 32px 8px #00eaffcc;
+}
+
+@media (max-width: 600px) {
+    .game-container {
+        padding: 24px 8px;
+    }
+    .water-drop {
+        width: 60px;
+        height: 80px;
+    }
+}
+
+/* ...existing code... */

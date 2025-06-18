@@ -1,25 +1,521 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Water Drop Game</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Charity Water Drop Game</title>
+  <!-- Add Google Fonts for a cooler title -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #0f2027, #2c5364 80%);
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      height: auto;
+      padding: 40px 0;
+      /* Add SVG background shapes for cool effect */
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before, body::after {
+      content: "";
+      position: fixed;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.25;
+      filter: blur(2px);
+      transition: opacity 0.3s;
+    }
+    body::before {
+      top: -120px;
+      left: -120px;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle at 60% 40%, #00eaff 0%, #2193b0 60%, transparent 100%);
+      border-radius: 50%;
+      opacity: 0.22;
+      animation: float1 8s ease-in-out infinite alternate;
+    }
+    body::after {
+      bottom: -100px;
+      right: -100px;
+      width: 340px;
+      height: 340px;
+      background: radial-gradient(circle at 40% 60%, #ffe600 0%, #fffbe6 70%, transparent 100%);
+      border-radius: 50%;
+      opacity: 0.18;
+      animation: float2 10s ease-in-out infinite alternate;
+    }
+    @keyframes float1 {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(40px) scale(1.08); }
+    }
+    @keyframes float2 {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-30px) scale(1.05); }
+    }
+    #background-svg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.18;
+      filter: blur(1px);
+    }
+    #game-container {
+      width: 100%;
+      max-width: 440px;
+      min-height: 720px;
+      margin: 40px 0;
+      border: 2px solid #00eaff88;
+      border-radius: 18px;
+      position: relative;
+      background: rgba(255,255,255,0.08);
+      overflow: hidden;
+      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37), 0 0 32px 8px #00eaff33;
+      backdrop-filter: blur(6px);
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: flex-start;
+    }
+    #title {
+      font-family: 'Orbitron', 'Arial', sans-serif;
+      background: linear-gradient(90deg, #ffe600 60%, #fffbe6 100%);
+      color: #1e2a3a;
+      padding: 18px 8px 14px 8px;
+      text-align: center;
+      font-size: 2.1rem;
+      font-weight: 700;
+      border-radius: 18px 18px 0 0;
+      box-shadow: 0 2px 18px #ffe60077, 0 0 24px #00eaff44;
+      letter-spacing: 2px;
+      text-shadow: 0 0 18px #ffe600, 0 2px 8px #00eaff, 0 0 4px #fffbe6;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      transition: text-shadow 0.2s;
+    }
+    #title:hover {
+      text-shadow: 0 0 32px #00eaff, 0 2px 12px #ffe600, 0 0 8px #fffbe6;
+    }
+    #start-button, #restart-button {
+      display: block;
+      margin: 20px auto 10px auto;
+      padding: 12px 28px;
+      font-weight: bold;
+      background: linear-gradient(90deg, #00eaff 0%, #2193b0 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      box-shadow: 0 0 16px 2px #00eaff88, 0 2px 8px #2193b055;
+      transition: transform 0.1s, box-shadow 0.2s;
+    }
+    #start-button:hover, #restart-button:hover {
+      transform: scale(1.07);
+      box-shadow: 0 0 32px 8px #00eaffcc;
+    }
+    #score, #timer {
+      position: absolute;
+      top: 60px;
+      font-size: 20px;
+      z-index: 10;
+      color: #fff;
+      text-shadow: 0 0 12px #00eaff, 0 2px 8px #2193b0;
+      font-weight: bold;
+      letter-spacing: 1px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.18);
+      box-shadow: 0 0 8px #00eaff44;
+    }
+    #score { left: 10px; }
+    #timer { right: 10px; }
+
+    .drop {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      position: absolute;
+      top: 0;
+      box-shadow: 0 0 18px 6px #00eaff99, 0 2px 8px #2193b055;
+      transition: box-shadow 0.2s;
+      z-index: 5;
+    }
+    .clean {
+      background: radial-gradient(circle at 60% 30%, #aeefff 60%, #00bfff 100%);
+      box-shadow: 0 0 24px 8px #00eaffcc, 0 2px 8px #2193b055;
+      animation: drop-glow 1.2s infinite alternate;
+    }
+    @keyframes drop-glow {
+      0% { box-shadow: 0 0 24px 8px #00eaffcc, 0 2px 8px #2193b055; }
+      100% { box-shadow: 0 0 36px 16px #00eaff, 0 2px 12px #2193b088; }
+    }
+    .polluted {
+      background: radial-gradient(circle at 60% 30%, #ffe066 60%, #ffcc00 100%);
+      border: 2px solid #000;
+      position: relative;
+      box-shadow: 0 0 16px 4px #ffe06699, 0 2px 8px #ffcc0055;
+    }
+    .polluted::after {
+      content: "✖";
+      color: #222;
+      font-weight: bold;
+      font-size: 16px;
+      position: absolute;
+      top: 2px;
+      left: 7px;
+      text-shadow: 0 0 6px #fff, 0 2px 4px #ffcc00;
+    }
+
+    #bucket {
+      width: 120px;
+      height: 80px;
+      background: linear-gradient(to top, #8b4513 70%, #a0522d 30%);
+      border: 6px solid #5c3317;
+      border-radius: 0 0 18px 18px;
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 8px 32px 0 #0008, 0 0 24px 8px #ffe60044, 0 0 32px 8px #00eaff22;
+      z-index: 4;
+      overflow: visible;
+      transition: box-shadow 0.2s;
+    }
+    #bucket:focus {
+      outline: 2px solid #00eaff;
+      box-shadow: 0 0 32px 8px #00eaffcc;
+    }
+    #bucket::before, #bucket::after {
+      content: '';
+      position: absolute;
+      width: 8px;
+      height: 60px;
+      background-color: #5c3317;
+      top: -60px;
+      box-shadow: 0 0 8px #a0522d88;
+    }
+    #bucket::before { left: 10px; }
+    #bucket::after { right: 10px; }
+
+    #roof {
+      position: absolute;
+      top: -80px;
+      left: 0;
+      width: 100%;
+      height: 30px;
+      background: linear-gradient(to bottom, #a0522d, #5c3317);
+      border-radius: 5px 5px 0 0;
+      box-shadow: 0 2px 12px #5c3317aa, 0 0 18px #ffe60033;
+      z-index: 3;
+    }
+    #feedback {
+      position: absolute;
+      bottom: 20px;
+      text-align: center;
+      width: 100%;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: #fff;
+      text-shadow: 0 0 8px #00eaff, 0 2px 8px #2193b0;
+      letter-spacing: 1px;
+      z-index: 10;
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+    #end-screen {
+      display: none;
+      position: absolute;
+      top: 120px;
+      padding: 24px;
+      width: 100%;
+      text-align: center;
+      background: rgba(255,255,255,0.13);
+      border-radius: 12px;
+      box-shadow: 0 0 32px 8px #00eaff33;
+      z-index: 20;
+    }
+    #end-screen h3 {
+      color: #00eaff;
+      text-shadow: 0 0 12px #00eaff, 0 2px 8px #2193b0;
+      font-size: 1.5rem;
+      margin-bottom: 12px;
+    }
+    #end-screen a {
+      color: #ffe600;
+      text-shadow: 0 0 8px #ffe60088;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+    #game-screen { position: relative; height: 100%; }
+
+    #well-fill {
+      position: absolute;
+      right: 10px;
+      top: 100px;
+      width: 32px;
+      height: 150px;
+      border: 2px solid #00eaff;
+      background: linear-gradient(180deg, #e0f7fa 80%, #b2ebf2 100%);
+      display: flex;
+      flex-direction: column-reverse;
+      border-radius: 12px;
+      box-shadow: 0 0 16px #00eaff55;
+      z-index: 6;
+    }
+
+    #fill-bar {
+      background: linear-gradient(180deg, #00eaff 60%, #2193b0 100%);
+      width: 100%;
+      height: 0%;
+      border-radius: 0 0 10px 10px;
+      box-shadow: 0 0 16px 4px #00eaffcc;
+      transition: height 0.3s cubic-bezier(.4,2,.6,1), box-shadow 0.2s;
+    }
+    #brick-wall {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      z-index: 2;
+    }
+    .brick {
+      width: 92%;
+      height: 12px;
+      margin: 1px 0;
+      background: repeating-linear-gradient(
+        90deg,
+        #a0522d,
+        #a0522d 20px,
+        #8b4513 20px,
+        #8b4513 40px
+      );
+      border: 1px solid #5c3317;
+      border-radius: 3px;
+      box-shadow: 0 1px 6px #5c3317cc, 0 0 8px #ffe60033;
+    }
+
+    @media (max-width: 600px) {
+      #game-container {
+        max-width: 98vw;
+        border-radius: 10px;
+        padding: 0;
+      }
+      #bucket {
+        width: 80px;
+        height: 54px;
+      }
+      #well-fill {
+        width: 22px;
+        height: 90px;
+      }
+      .drop {
+        width: 18px;
+        height: 18px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="game-wrapper">
-        <h1 class="game-title">Water Drop</h1>
-        <p class="game-tagline">Catch the good drops, avoid the bad ones!</p>
-        <div class="score-panel">
-            <div class="score">Score: <span id="score">0</span></div>
-            <div class="timer">Time: <span id="time">30</span>s</div>
-            <button id="start-btn">Start Game</button>
-        </div>
-        
-        <div id="game-container">
-        </div>
+  <!-- Add SVG decorative shapes for extra coolness -->
+  <svg id="background-svg" viewBox="0 0 1920 1080" preserveAspectRatio="none">
+    <ellipse cx="350" cy="180" rx="220" ry="80" fill="#00eaff" opacity="0.18"/>
+    <ellipse cx="1700" cy="900" rx="180" ry="60" fill="#ffe600" opacity="0.13"/>
+    <ellipse cx="1200" cy="200" rx="120" ry="40" fill="#fffbe6" opacity="0.10"/>
+    <ellipse cx="900" cy="900" rx="300" ry="100" fill="#2193b0" opacity="0.10"/>
+    <ellipse cx="1600" cy="300" rx="100" ry="40" fill="#00eaff" opacity="0.10"/>
+    <ellipse cx="400" cy="900" rx="120" ry="40" fill="#ffe600" opacity="0.10"/>
+  </svg>
+  <!-- Add charity: water logo to the top -->
+  <div style="width:10%;display:flex;justify-content:center;align-items:center;margin-bottom:18px;margin-top:8px;z-index:2;position:relative;">
+    <img src="img/water-can-transparent.png" alt="charity: water logo" style="max-width:320px;width:90%;height:auto;"/>
+  </div>
+  <div id="game-container">
+    <div id="title">Clean Water Collector</div>
+    <div id="score">Score: 0</div>
+    <div id="timer">60s</div>
+    <button id="start-button">Start Game</button>
+
+    <div id="game-screen"></div>
+    <div id="bucket">
+        <div id="roof"></div>
+      <div id="brick-wall"></div>
     </div>
-    
-    <script src="script.js"></script>
+    <div id="well-fill"><div id="fill-bar"></div></div>
+    <div id="feedback"></div>
+
+    <div id="end-screen">
+      <h3 id="end-message"></h3>
+      <p><a href="https://www.charitywater.org" target="_blank">Learn about charity: water</a></p>
+      <button id="restart-button">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const startButton = document.getElementById('start-button');
+    const restartButton = document.getElementById('restart-button');
+    const gameScreen = document.getElementById('game-screen');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+    const feedback = document.getElementById('feedback');
+    const bucket = document.getElementById('bucket');
+    const endScreen = document.getElementById('end-screen');
+    const endMessage = document.getElementById('end-message');
+    const fillBar = document.getElementById('fill-bar');
+
+    let score = 0;
+    let timer = 60;
+    let dropInterval;
+    let gameTimer;
+    const winScore = 20;
+    const messages = ["Great!", "Nice!", "Keep going!", "You're on fire!", "Almost there!"];
+
+    function startGame() {
+      startButton.style.display = 'none';
+      endScreen.style.display = 'none';
+      gameScreen.innerHTML = '';
+      score = 0;
+      timer = 60;
+      updateScore();
+      updateWell();
+      timerDisplay.textContent = `${timer}s`;
+      gameTimer = setInterval(updateTimer, 1000);
+      dropInterval = setInterval(createDrop, 700);
+    }
+
+    function endGame() {
+      clearInterval(dropInterval);
+      clearInterval(gameTimer);
+      endScreen.style.display = 'block';
+      endMessage.textContent = score >= winScore ? "You built the well!" : "Try again to build the well!";
+    }
+
+    function updateTimer() {
+      timer--;
+      timerDisplay.textContent = `${timer}s`;
+      if (timer <= 0 || score >= winScore) endGame();
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = `Score: ${score}`;
+      updateWell();
+    }
+
+    function updateWell() {
+  const percent = Math.min(100, (score / winScore) * 100);
+  fillBar.style.height = percent + '%';
+
+  const wall = document.getElementById('brick-wall');
+  wall.innerHTML = '';
+  const brickCount = Math.floor(score / 3);
+  for (let i = 0; i < brickCount; i++) {
+    const brick = document.createElement('div');
+    brick.classList.add('brick');
+    wall.appendChild(brick);
+  }
+}
+
+    function createDrop() {
+      const drop = document.createElement('div');
+      drop.classList.add('drop');
+      const polluted = Math.random() < 0.25;
+      drop.classList.add(polluted ? 'polluted' : 'clean');
+      drop.style.left = Math.random() * 90 + '%';
+      gameScreen.appendChild(drop);
+
+      let y = 0;
+      const fall = setInterval(() => {
+        y += 3;
+        drop.style.top = y + 'px';
+
+        const dropRect = drop.getBoundingClientRect();
+        const bucketRect = bucket.getBoundingClientRect();
+
+        if (
+          dropRect.bottom >= bucketRect.top &&
+          dropRect.left >= bucketRect.left &&
+          dropRect.right <= bucketRect.right
+        ) {
+          if (polluted) {
+            score = Math.max(0, score - 1);
+            feedback.textContent = "Oops! Dirty water!";
+            feedback.style.color = 'red';
+          } else {
+            score++;
+            feedback.textContent = messages[Math.floor(Math.random() * messages.length)];
+            feedback.style.color = 'blue';
+          }
+          updateScore();
+          drop.remove();
+          clearInterval(fall);
+        }
+
+        if (y > 600) {
+          drop.remove();
+          clearInterval(fall);
+        }
+      }, 30);
+    }
+
+    // Move well with arrow keys
+    window.addEventListener('keydown', (e) => {
+      const step = 15;
+      let left = parseInt(window.getComputedStyle(bucket).left);
+      if (e.key === 'ArrowLeft') {
+        bucket.style.left = Math.max(0, left - step) + 'px';
+      } else if (e.key === 'ArrowRight') {
+        bucket.style.left = Math.min(window.innerWidth - 100, left + step) + 'px';
+      }
+    });
+
+    // Touch support for sliding bucket on mobile
+    let touchStartX = null;
+    const bucketStep = 40; // Move more on swipe for mobile
+
+    document.getElementById('game-container').addEventListener('touchstart', function(e) {
+      if (e.touches.length === 1) {
+        touchStartX = e.touches[0].clientX;
+      }
+    });
+
+    document.getElementById('game-container').addEventListener('touchmove', function(e) {
+      if (touchStartX !== null && e.touches.length === 1) {
+        const touchX = e.touches[0].clientX;
+        const dx = touchX - touchStartX;
+        if (Math.abs(dx) > 30) { // Only trigger if swipe is significant
+          let left = parseInt(window.getComputedStyle(bucket).left);
+          if (dx > 0) {
+            // Swipe right
+            bucket.style.left = Math.min(window.innerWidth - 100, left + bucketStep) + 'px';
+          } else {
+            // Swipe left
+            bucket.style.left = Math.max(0, left - bucketStep) + 'px';
+          }
+          touchStartX = touchX; // Reset for next swipe
+        }
+      }
+    });
+
+    document.getElementById('game-container').addEventListener('touchend', function() {
+      touchStartX = null;
+    });
+
+    startButton.onclick = startGame;
+    restartButton.onclick = startGame;
+  </script>
 </body>
 </html>
+
